@@ -2,31 +2,34 @@ package main
 
 import (
 	"fmt"
+	"github.com/robino88/go-microservice-clean/config"
 	"log"
 	"net/http"
-	"time"
 )
 
 //main function running the application
 func main() {
+	appConfig := config.AppConfig()
+
 	mux := http.NewServeMux()
 
 	//adding the Greet function to the /ping endpoint
 	mux.HandleFunc("/ping", Greet)
 
-	log.Println("Starting server at :8080")
+	address := fmt.Sprintf(":%d", appConfig.Server.Port)
+
+	log.Printf("Starting server at %s\n", address)
 
 	s := &http.Server{
-		Addr:         ":8080",
+		Addr:         address,
 		Handler:      mux,
-		ReadTimeout:  30 * time.Second,
-		WriteTimeout: 30 * time.Second,
-		IdleTimeout:  120 * time.Second,
+		ReadTimeout:  appConfig.Server.TimeoutRead,
+		WriteTimeout: appConfig.Server.TimeoutWrite,
+		IdleTimeout:  appConfig.Server.TimeoutIdle,
 	}
 
 	if err := s.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		log.Fatal("Server startup failed")
-
 	}
 
 }

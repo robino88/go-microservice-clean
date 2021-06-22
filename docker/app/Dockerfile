@@ -8,6 +8,9 @@ RUN apk update && apk add --no-cache gcc musl-dev git
 
 COPY . .
 
+COPY go.mod go.sum ./
+RUN go mod download
+
 RUN go build -ldflags '-w -s' -a -o ./bin/app ./cmd/app
 
 # Deployment environment
