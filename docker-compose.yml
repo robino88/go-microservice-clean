@@ -3,8 +3,8 @@ services:
   app:
     build:
       context: .
-      dockerfile: docker/app/Dockerfile
+      dockerfile: Dockerfile
     env_file:
-      - ./docker/app/.env
+      - .env
     ports:
       - "8080:8080"
