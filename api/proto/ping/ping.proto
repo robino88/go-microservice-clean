@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package main;
+option go_package="github.com/robino88/go-microservice-clean/spec";
+
+
+message PingRequest {
+    string name = 1;
+}
+
+message PingResponse {
+    string message = 1;
+}
