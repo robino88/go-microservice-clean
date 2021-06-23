@@ -3,8 +3,9 @@ package main
 import (
 	"fmt"
 	"github.com/robino88/go-microservice-clean/app/router"
+	"github.com/robino88/go-microservice-clean/app/server"
 	"github.com/robino88/go-microservice-clean/config"
-	"log"
+	LOG "github.com/robino88/go-microservice-clean/util/logger"
 	"net/http"
 )
 
@@ -12,11 +13,15 @@ import (
 func main() {
 	appConfig := config.AppConfig()
 
-	appRouter := router.NewRouter()
+	logger := LOG.NewLogger(appConfig.Debug)
+
+	server := server.NewServer(logger)
+
+	appRouter := router.NewRouter(server)
 
 	address := fmt.Sprintf(":%d", appConfig.Server.Port)
 
-	log.Printf("Starting server at %s\n", address)
+	logger.Info().Msgf("Starting server %v", address)
 
 	s := &http.Server{
 		Addr:         address,
@@ -27,7 +32,7 @@ func main() {
 	}
 
 	if err := s.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		log.Fatal("Server startup failed")
+		logger.Fatal().Err(err).Msg("Server startup failed")
 	}
 
 }

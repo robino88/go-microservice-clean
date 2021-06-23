@@ -10,6 +10,7 @@ import (
 // All in one struct
 type Config struct {
 	Server ServerConfig
+	Debug  bool `env:"DEBUG,required"`
 }
 
 //ServerConfig Specifc config struct for all the Server configuration

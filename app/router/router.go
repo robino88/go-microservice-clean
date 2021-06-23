@@ -2,13 +2,15 @@ package router
 
 import (
 	"github.com/go-chi/chi"
+	"github.com/robino88/go-microservice-clean/app/handler"
 	"github.com/robino88/go-microservice-clean/app/server"
 )
 
-func NewRouter() *chi.Mux {
-	r := chi.NewRouter()
+func NewRouter(server *server.Server) *chi.Mux {
+	logger := server.Logger()
+	router := chi.NewRouter()
 
-	r.MethodFunc("GET", "/ping", server.HandlePing)
+	router.Method("GET", "/ping", handler.NewHandler(server.HandlePing, logger))
 
-	return r
+	return router
 }
