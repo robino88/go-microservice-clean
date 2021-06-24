@@ -2,6 +2,7 @@ package server
 
 import (
 	"github.com/robino88/go-microservice-clean/spec"
+	"github.com/rs/zerolog/log"
 	"google.golang.org/protobuf/encoding/protojson"
 	"io/ioutil"
 	"net/http"
@@ -22,6 +23,7 @@ func (server *Server) HandlePingGET(resp http.ResponseWriter, _ *http.Request) {
 func (server *Server) HandlePingPOST(resp http.ResponseWriter, req *http.Request) {
 	// serialize the data
 	data, err := ioutil.ReadAll(req.Body)
+	log.Debug().Msgf("Request body: %v", string(data))
 	if err != nil {
 		server.logger.Warn().Err(err).Msg("Unable to serialize data")
 	}

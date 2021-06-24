@@ -1,6 +1,8 @@
 package server
 
-import "github.com/robino88/go-microservice-clean/util/logger"
+import (
+	"github.com/robino88/go-microservice-clean/util/logger"
+)
 
 type Server struct {
 	logger *logger.Logger
