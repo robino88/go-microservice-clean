@@ -70,6 +70,7 @@ func (server *Server) HandleCartExtension(writer http.ResponseWriter, req *http.
 		Version: cart.Version,
 		Actions: updateActions,
 	}
+
 	updatedCart, ctResp, err := server.commercetools.Carts.Update(context.TODO(), cart.ID, updateCart)
 	server.logger.Debug().Msgf("commercetools update send with the status: %v", ctResp.StatusCode)
 	if err != nil {
@@ -80,12 +81,16 @@ func (server *Server) HandleCartExtension(writer http.ResponseWriter, req *http.
 		return
 	}
 
-	if ctResp.StatusCode != 200 {
-		jsonReq, _ := json.Marshal(updateCart)
-		server.logger.Debug().Msg(string(jsonReq))
-		writer.WriteHeader(ctResp.StatusCode)
+	jsonReq, _ := json.Marshal(updateCart)
+	server.logger.Debug().Msg(string(jsonReq))
+	// Finally log the request.
+	buf, err = ioutil.ReadAll(req.Body)
+	if err != nil {
+		server.logger.Error().Msgf("Error reading request body: %v", err.Error())
+		http.Error(writer, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	server.logger.Debug().Msgf("Request body: %v", string(buf))
 
 	server.logger.Debug().
 		Msgf("Successfully updated Cart: %v (version %v)", updatedCart.ID, updatedCart.Version)
@@ -146,7 +151,7 @@ func getLineItemId(cart *commercetools.Cart, sapID string) string {
 func fakePriceGenerator(sapIDs string) []*priceResp {
 	var prices []*priceResp
 	for _, sapId := range strings.Split(sapIDs, ",") {
-		prices = append(prices, newPriceResp(sapId, 133700))
+		prices = append(prices, newPriceResp(sapId, 100000000))
 	}
 	return prices
 }
