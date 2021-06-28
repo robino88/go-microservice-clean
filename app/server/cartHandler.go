@@ -80,7 +80,11 @@ func SerializeResponse(req *http.Request) (*commercetools.UpdateResponse, error)
 	return updateResponse, nil
 }
 
-func createPriceUpdatesForCart(cart *commercetools.Cart, prices []*priceResp) []interface{} {
+type Response struct {
+	Actions []interface{} `json:"actions"`
+}
+
+func createPriceUpdatesForCart(cart *commercetools.Cart, prices []*priceResp) Response {
 	var updateActions []interface{}
 	for _, price := range prices {
 		id := getLineItemId(cart, price.sapID)
@@ -92,7 +96,7 @@ func createPriceUpdatesForCart(cart *commercetools.Cart, prices []*priceResp) []
 				FractionDigits: 2,
 			}))
 	}
-	return updateActions
+	return Response{Actions: updateActions}
 }
 
 func extractSapNumbersFromCart(cart *commercetools.Cart) string {
