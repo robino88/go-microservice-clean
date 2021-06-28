@@ -1,12 +1,10 @@
 package server
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/robino88/go-microservice-clean/util/commercetools"
-	"io/ioutil"
 	"net/http"
 	"strings"
 )
@@ -14,20 +12,8 @@ import (
 func (server *Server) HandleCartExtension(writer http.ResponseWriter, req *http.Request) {
 	//we always want to send back the data as json
 	writer.Header().Set("Content-Type", "application/json")
-
-	//this peace will log the req and put it back on the body for debuggin purposes.
-	buf, err := ioutil.ReadAll(req.Body)
-	if err != nil {
-		server.logger.Error().Msgf("Error reading request body: %v", err.Error())
-		http.Error(writer, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	server.logger.Debug().Msgf("Request body: %v", string(buf))
-	reader := ioutil.NopCloser(bytes.NewBuffer(buf))
-	req.Body = reader
-
 	// Serialize the data and return the error is something goes wrong
-	cart, err := SerializeResponseToCart(req)
+	resp, err := SerializeResponse(req)
 	if err != nil {
 		server.logger.Error().Err(err).Msg("")
 		writer.WriteHeader(http.StatusBadRequest)
@@ -36,6 +22,7 @@ func (server *Server) HandleCartExtension(writer http.ResponseWriter, req *http.
 		return
 	}
 
+	cart := resp.Resource.Cart
 	server.logger.Debug().
 		Msgf("Received Cart: %v (version %v)", cart.ID, cart.Version)
 
@@ -89,13 +76,13 @@ func (server *Server) HandleCartExtension(writer http.ResponseWriter, req *http.
 	writer.WriteHeader(http.StatusOK)
 }
 
-//SerializeResponseToCart Just takes the request and
-func SerializeResponseToCart(req *http.Request) (*commercetools.Cart, error) {
-	cart := &commercetools.Cart{}
-	if err := json.NewDecoder(req.Body).Decode(cart); err != nil {
+//SerializeResponse Just takes the request and
+func SerializeResponse(req *http.Request) (*commercetools.UpdateResponse, error) {
+	updateResponse := &commercetools.UpdateResponse{}
+	if err := json.NewDecoder(req.Body).Decode(updateResponse); err != nil {
 		return nil, err
 	}
-	return cart, nil
+	return updateResponse, nil
 }
 
 func createPriceUpdatesForCart(cart *commercetools.Cart, prices []*priceResp) []interface{} {

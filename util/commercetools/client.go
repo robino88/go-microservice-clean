@@ -35,6 +35,17 @@ type ErrorResponse struct {
 	Message string `json:"message"`
 }
 
+type UpdateResponse struct {
+	Action   string    `json:"action"`
+	Resource *Resource `json:"resource"`
+}
+
+type Resource struct {
+	TypeID string `json:"typeId"`
+	ID     string `json:"id"`
+	Cart   *Cart  `json:"obj"`
+}
+
 func NewErrorResponse(code string, message string) []byte {
 	err, _ := json.Marshal(ErrorResponse{
 		Code:    code,
