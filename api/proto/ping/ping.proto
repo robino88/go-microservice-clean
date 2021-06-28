@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 package main;
-option go_package="github.com/robino88/go-microservice-clean/spec";
+option go_package = "github.com/robino88/go-microservice-clean/spec";
 
 
 message PingRequest {

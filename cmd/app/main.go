@@ -1,28 +1,37 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"github.com/robino88/go-microservice-clean/app/router"
 	"github.com/robino88/go-microservice-clean/app/server"
 	"github.com/robino88/go-microservice-clean/config"
-	LOG "github.com/robino88/go-microservice-clean/util/logger"
+	"github.com/robino88/go-microservice-clean/util/commercetools"
+	"github.com/robino88/go-microservice-clean/util/logger"
 	"net/http"
 )
 
 //main function running the application
 func main() {
+	ctx := context.Background()
+
 	appConfig := config.AppConfig()
 
-	logger := LOG.NewLogger(appConfig.Debug)
-
-	server := server.NewServer(logger)
-
-	appRouter := router.NewRouter(server)
+	log := logger.NewLogger(appConfig.Debug)
+	ct := commercetools.NewClient(ctx, appConfig.Commercetools)
+	srv := server.NewServer(log, ct)
+	appRouter := router.NewRouter(srv)
 
 	address := fmt.Sprintf(":%d", appConfig.Server.Port)
 
-	logger.Info().Msgf("Starting server %v", address)
+	project, _, err := ct.Project.Get(ctx)
+	if err != nil {
+		log.Warn().Err(err).Msg("EXIT")
+		return
+	}
+	log.Info().Msgf("Connected to commercetools instance : %s (%s)", project.Name, project.Key)
 
+	log.Info().Msgf("Starting server %v", address)
 	s := &http.Server{
 		Addr:         address,
 		Handler:      appRouter,
@@ -32,7 +41,7 @@ func main() {
 	}
 
 	if err := s.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		logger.Fatal().Err(err).Msg("Server startup failed")
+		log.Fatal().Err(err).Msg("Server startup failed")
 	}
 
 }

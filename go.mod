@@ -6,5 +6,6 @@ require (
 	github.com/go-chi/chi v1.5.4 // indirect=
 	github.com/joeshaw/envdecode v0.0.0-20200121155833-099f1fc765bd // indirect
 	github.com/rs/zerolog v1.23.0 // indirect
+	golang.org/x/oauth2 v0.0.0-20210622215436-a8dc77f794b6 // indirect
 	google.golang.org/protobuf v1.26.0 // indirect
 )
