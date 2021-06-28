@@ -2,7 +2,6 @@ package server
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/robino88/go-microservice-clean/util/commercetools"
@@ -66,41 +65,10 @@ func (server *Server) HandleCartExtension(writer http.ResponseWriter, req *http.
 
 	// create updateActions and update request to commercetools and execute
 	updateActions := createPriceUpdatesForCart(cart, calculatedPrices)
-	updateCart := commercetools.UpdateCart{
-		Version: cart.Version,
-		Actions: updateActions,
-	}
-
-	_, ctResp, err := server.commercetools.Carts.Update(context.TODO(), cart.ID, updateCart)
-	server.logger.Debug().Msgf("commercetools update send with the status: %v", ctResp.StatusCode)
-	if err != nil {
-		server.logger.Error().Err(err).Msg("")
-		writer.WriteHeader(http.StatusBadRequest)
-		writer.Write(commercetools.NewErrorResponse("InvalidOperation",
-			"There was an error while updating the cart, Check the logs of the API extension. CartID: "+cart.ID))
-		return
-	}
-
-	if ctResp.StatusCode == 409 {
-		get, _, _ := server.commercetools.Carts.Get(context.TODO(), cart.ID)
-		server.logger.Debug().Msgf("got a version conflict trying it again with version %v", get.Version)
-		updateCart.Version = get.Version
-		_, ctResp, err = server.commercetools.Carts.Update(context.TODO(), cart.ID, updateCart)
-		server.logger.Debug().Msgf("commercetools update send with the status: %v", ctResp.StatusCode)
-		if err != nil {
-			server.logger.Error().Err(err).Msg("")
-			writer.WriteHeader(http.StatusBadRequest)
-			writer.Write(commercetools.NewErrorResponse("InvalidOperation",
-				"There was an error while updating the cart, Check the logs of the API extension. CartID: "+cart.ID))
-			return
-		}
-
-	}
-
-	jsonReq, _ := json.Marshal(updateCart)
-	server.logger.Debug().Msgf("Request body: %v", string(jsonReq))
-
+	actions, _ := json.Marshal(updateActions)
+	server.logger.Debug().Msgf("Request body: %v", string(actions))
 	writer.WriteHeader(http.StatusOK)
+	writer.Write(actions)
 }
 
 //SerializeResponse Just takes the request and
