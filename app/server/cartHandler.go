@@ -67,15 +67,16 @@ func (server *Server) HandleCartExtension(writer http.ResponseWriter, req *http.
 	// create updateActions and update request to commercetools and execute
 	updateActions := createPriceUpdatesForCart(cart, calculatedPrices)
 	updateCart := commercetools.UpdateCart{
-		Version: cart.Version + 1,
+		Version: cart.Version,
 		Actions: updateActions,
 	}
 	updatedCart, ctResp, err := server.commercetools.Carts.Update(context.TODO(), cart.ID, updateCart)
+	server.logger.Debug().Msgf("commercetools update send with the status: %v", ctResp.StatusCode)
 	if err != nil {
 		server.logger.Error().Err(err).Msg("")
 		writer.WriteHeader(http.StatusBadRequest)
 		writer.Write(commercetools.NewErrorResponse("InvalidOperation",
-			"There was an error while updating the cart, Check the logs of the API extension. CartID:  "+cart.ID))
+			"There was an error while updating the cart, Check the logs of the API extension. CartID: "+cart.ID))
 		return
 	}
 
@@ -86,7 +87,8 @@ func (server *Server) HandleCartExtension(writer http.ResponseWriter, req *http.
 		return
 	}
 
-	server.logger.Debug().Msgf("Successfully updated Cart: %v (version %v)", updatedCart.ID, updatedCart.Version)
+	server.logger.Debug().
+		Msgf("Successfully updated Cart: %v (version %v)", updatedCart.ID, updatedCart.Version)
 	writer.WriteHeader(http.StatusOK)
 }
 
