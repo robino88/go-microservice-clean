@@ -53,7 +53,7 @@ func (server *Server) HandleCartExtension(writer http.ResponseWriter, req *http.
 	// create updateActions and update request to commercetools and execute
 	updateActions := createPriceUpdatesForCart(cart, calculatedPrices)
 	updateCart := commercetools.UpdateCart{
-		Version: cart.Version,
+		Version: cart.Version + 1,
 		Actions: updateActions,
 	}
 	updatedCart, ctResp, err := server.commercetools.Carts.Update(context.TODO(), cart.ID, updateCart)
