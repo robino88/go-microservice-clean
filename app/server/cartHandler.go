@@ -1,10 +1,12 @@
 package server
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/robino88/go-microservice-clean/util/commercetools"
+	"io/ioutil"
 	"net/http"
 	"strings"
 )
@@ -12,6 +14,17 @@ import (
 func (server *Server) HandleCartExtension(writer http.ResponseWriter, req *http.Request) {
 	//we always want to send back the data as json
 	writer.Header().Set("Content-Type", "application/json")
+
+	//this peace will log the req and put it back on the body for debuggin purposes.
+	buf, err := ioutil.ReadAll(req.Body)
+	if err != nil {
+		server.logger.Error().Msgf("Error reading request body: %v", err.Error())
+		http.Error(writer, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	server.logger.Debug().Msgf("Request body: %v", string(buf))
+	reader := ioutil.NopCloser(bytes.NewBuffer(buf))
+	req.Body = reader
 
 	// Serialize the data and return the error is something goes wrong
 	cart, err := SerializeResponseToCart(req)
