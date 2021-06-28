@@ -18,7 +18,7 @@ func (server *Server) HandleCartExtension(writer http.ResponseWriter, req *http.
 	//this peace will log the req and put it back on the body for debugging purposes.
 	buf, err := ioutil.ReadAll(req.Body)
 	if err != nil {
-		server.logger.Error().Msgf("Error reading request body: %v", err.Error())
+		server.logger.Error().Err(err).Msg("")
 		http.Error(writer, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -71,7 +71,7 @@ func (server *Server) HandleCartExtension(writer http.ResponseWriter, req *http.
 		Actions: updateActions,
 	}
 
-	updatedCart, ctResp, err := server.commercetools.Carts.Update(context.TODO(), cart.ID, updateCart)
+	_, ctResp, err := server.commercetools.Carts.Update(context.TODO(), cart.ID, updateCart)
 	server.logger.Debug().Msgf("commercetools update send with the status: %v", ctResp.StatusCode)
 	if err != nil {
 		server.logger.Error().Err(err).Msg("")
@@ -84,16 +84,13 @@ func (server *Server) HandleCartExtension(writer http.ResponseWriter, req *http.
 	jsonReq, _ := json.Marshal(updateCart)
 	server.logger.Debug().Msg(string(jsonReq))
 	// Finally log the request.
-	buf, err = ioutil.ReadAll(req.Body)
+	buf, err = ioutil.ReadAll(ctResp.Body)
 	if err != nil {
-		server.logger.Error().Msgf("Error reading request body: %v", err.Error())
+		server.logger.Error().Err(err).Msg("")
 		http.Error(writer, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	server.logger.Debug().Msgf("Request body: %v", string(buf))
-
-	server.logger.Debug().
-		Msgf("Successfully updated Cart: %v (version %v)", updatedCart.ID, updatedCart.Version)
 	writer.WriteHeader(http.StatusOK)
 }
 
