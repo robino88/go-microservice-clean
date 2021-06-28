@@ -31,6 +31,12 @@ type Client struct {
 }
 
 type ErrorResponse struct {
+	StatusCode int      `json:"statusCode"`
+	Message    string   `json:"message"`
+	Errors     []*Error `json:"errors"`
+}
+
+type Error struct {
 	Code    string `json:"code"`
 	Message string `json:"message"`
 }
@@ -47,7 +53,7 @@ type Resource struct {
 }
 
 func NewErrorResponse(code string, message string) []byte {
-	err, _ := json.Marshal(ErrorResponse{
+	err, _ := json.Marshal(Error{
 		Code:    code,
 		Message: message,
 	})

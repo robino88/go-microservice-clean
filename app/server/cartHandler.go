@@ -81,16 +81,25 @@ func (server *Server) HandleCartExtension(writer http.ResponseWriter, req *http.
 		return
 	}
 
-	jsonReq, _ := json.Marshal(updateCart)
-	server.logger.Debug().Msg(string(jsonReq))
-	// Finally log the request.
-	buf, err = ioutil.ReadAll(ctResp.Body)
-	if err != nil {
-		server.logger.Error().Err(err).Msg("")
-		http.Error(writer, err.Error(), http.StatusInternalServerError)
-		return
+	if ctResp.StatusCode == 409 {
+		get, _, _ := server.commercetools.Carts.Get(context.TODO(), cart.ID)
+		server.logger.Debug().Msgf("got a version conflict trying it again with version %v", get.Version)
+		updateCart.Version = get.Version
+		_, ctResp, err = server.commercetools.Carts.Update(context.TODO(), cart.ID, updateCart)
+		server.logger.Debug().Msgf("commercetools update send with the status: %v", ctResp.StatusCode)
+		if err != nil {
+			server.logger.Error().Err(err).Msg("")
+			writer.WriteHeader(http.StatusBadRequest)
+			writer.Write(commercetools.NewErrorResponse("InvalidOperation",
+				"There was an error while updating the cart, Check the logs of the API extension. CartID: "+cart.ID))
+			return
+		}
+
 	}
-	server.logger.Debug().Msgf("Request body: %v", string(buf))
+
+	jsonReq, _ := json.Marshal(updateCart)
+	server.logger.Debug().Msgf("Request body: %v", string(jsonReq))
+
 	writer.WriteHeader(http.StatusOK)
 }
 
