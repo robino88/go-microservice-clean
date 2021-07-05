@@ -66,7 +66,6 @@ func (s *Server) HandleCartApplyCustomer(w http.ResponseWriter, r *http.Request)
 
 func (s *Server) HandleCartUpdateLineItems(w http.ResponseWriter, r *http.Request) {
 	s.log.Debug().Msg("HandleCartUpdateLineItems called")
-	s.printRequest(r.Body)
 	ctx := context.TODO()
 
 	// We parse the request to a workable struct

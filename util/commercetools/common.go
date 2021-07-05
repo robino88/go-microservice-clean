@@ -47,7 +47,7 @@ func CreateUpdateActionForCustomerKeyAppend(customerKey string) []interface{} {
 
 func CreateUpdateActionForLineItemPrices(items []*LineItem, prices []*mock.PriceResp, code string) []interface{} {
 	var updateActions []interface{}
-	if items != nil {
+	if items == nil {
 		return nil
 	}
 
