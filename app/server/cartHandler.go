@@ -148,7 +148,6 @@ func (s *Server) HandleCartUpdateSurCharges(w http.ResponseWriter, r *http.Reque
 
 func (s *Server) HandleCartUpdateShippingCost(w http.ResponseWriter, r *http.Request) {
 	s.log.Debug().Msg("HandleCartUpdateShippingCost called")
-	s.printRequest(r.Body)
 	ctx := context.TODO()
 
 	// We parse the request to a workable struct
