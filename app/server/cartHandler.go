@@ -1,107 +1,168 @@
 package server
 
 import (
-	"bytes"
-	"encoding/json"
+	"context"
+	"errors"
 	"fmt"
 	"github.com/robino88/go-microservice-clean/util/commercetools"
-	"io/ioutil"
+	"github.com/robino88/go-microservice-clean/util/mock"
 	"net/http"
 	"strings"
 )
 
-func (server *Server) HandleCartExtension(writer http.ResponseWriter, req *http.Request) {
-	//we always want to send back the data as json
-	writer.Header().Set("Content-Type", "application/json")
+func (s *Server) HandleCartApplyCustomer(w http.ResponseWriter, r *http.Request) {
+	s.log.Debug().Msg("HandleCartApplyCustomer called")
+	ctx := context.TODO()
 
-	//this peace will log the req and put it back on the body for debugging purposes.
-	buf, err := ioutil.ReadAll(req.Body)
+	// We parse the request to a workable struct
+	request, err := parseRequest(ctx, r)
 	if err != nil {
-		server.logger.Error().Err(err).Msg("")
-		http.Error(writer, err.Error(), http.StatusInternalServerError)
-		return
+		return //todo: implement proper error
 	}
-	server.logger.Debug().Msgf("Request body: %v", string(buf))
-	reader := ioutil.NopCloser(bytes.NewBuffer(buf))
-	req.Body = reader
 
-	// Serialize the data and return the error is something goes wrong
-	resp, err := SerializeResponse(req)
+	// we retrieve the customerID from he cart
+	customerId := request.Resource.Cart.CustomerId
+
+	// We can use that customerID to retrieve the customerKey From the Customer
+	customerKey, err := getCustomerKey(ctx, customerId, s.ct)
 	if err != nil {
-		server.logger.Error().Err(err).Msg("")
-		writer.WriteHeader(http.StatusBadRequest)
-		writer.Write(commercetools.NewErrorResponse("InvalidInput",
-			"The cart received from commercetools wasn't valid and could not be serialized"))
-		return
+		return //todo: implement proper error
 	}
 
-	cart := resp.Resource.Cart
-	server.logger.Debug().
-		Msgf("Received Cart: %v (version %v)", cart.ID, cart.Version)
+	// We create a UpdateAction to return back as a response
+	actions := commercetools.CreateUpdateActionForCustomerKeyAppend(customerKey)
+	response := commercetools.NewUpdateResponse(actions)
 
-	//only work on carts with active states
-	if cart.CartState != "Active" {
-		server.logger.Info().
-			Msgf("Skipping cart %v because its state is %v", cart.ID, cart.CartState)
-		writer.WriteHeader(http.StatusOK)
+	// We create the response
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(response)
+
+	s.log.Debug().Msg("HandleCartApplyCustomer finished")
+}
+
+func (s *Server) HandleCartUpdateLineItems(w http.ResponseWriter, r *http.Request) {
+	s.log.Debug().Msg("HandleCartUpdateLineItems called")
+	ctx := context.TODO()
+
+	// We parse the request to a workable struct
+	request, err := parseRequest(ctx, r)
+	if err != nil {
+		return //todo: implement proper error
+	}
+	if request != nil &&
+		request.Resource != nil &&
+		request.Resource.Cart.LineItems != nil {
+		w.WriteHeader(http.StatusOK)
 		return
 	}
+	// We retrieve the lineItems from the cart
+	lineItems := request.Resource.Cart.LineItems
+	currencyCode := request.Resource.Cart.TotalPrice.CurrencyCode
 
-	// Extracting id's from cart, if no id's are found return error.
-	sapIds := extractSapNumbersFromCart(cart)
-	if len(sapIds) < 1 {
-		writer.WriteHeader(http.StatusBadRequest)
-		writer.Write(commercetools.NewErrorResponse("InvalidInput",
-			"The cart did not contain any valid sap-ids please check the cart if if it contained valid products ("+cart.ID+")"))
-		return
-	}
-	server.logger.Debug().
-		Msgf("Getting prices for customer %v (%v)", cart.CustomerId, sapIds)
+	sapIds := getSapIDs(lineItems)
 
 	// Do call to service
-	calculatedPrices := fakePriceGenerator(sapIds)
-	server.logger.Debug().
-		Msgf("Retrieving the custom prices for customer %v (%v)", cart.CustomerId, calculatedPrices[0].price)
+	//todo: implement real database
+	prices := mock.FakePriceGenerator(sapIds)
 
-	// create updateActions and update request to commercetools and execute
-	updateActions := createPriceUpdatesForCart(cart, calculatedPrices)
-	actions, _ := json.Marshal(updateActions)
-	server.logger.Debug().Msgf("Request body: %v", string(actions))
+	// We create a UpdateAction to return back as a response
+	actions := commercetools.CreateUpdateActionForLineItemPrices(lineItems, prices, currencyCode)
+	response := commercetools.NewUpdateResponse(actions)
+
+	// We create the response
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(response)
+
+	s.log.Debug().Msg("HandleCartUpdateLineItems finished")
+}
+
+func (s *Server) HandleCartUpdateLSurCharges(w http.ResponseWriter, r *http.Request) {
+	s.log.Debug().Msg("HandleCartUpdateLSurCharges called")
+	ctx := context.TODO()
+
+	// We parse the request to a workable struct
+	request, err := parseRequest(ctx, r)
+	if err != nil {
+		return //todo: implement proper error
+	}
+	if request != nil &&
+		request.Resource != nil &&
+		request.Resource.Cart.CustomLineItems != nil {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
+	items := request.Resource.Cart.CustomLineItems
+	currencyCode := request.Resource.Cart.TotalPrice.CurrencyCode
+	surchargeCodes := getSurchargeCodes(items)
+	prices := mock.FakePriceGenerator(surchargeCodes)
+
+	// We create a UpdateAction to return back as a response
+	actions := commercetools.CreateUpdateActionForSurCharges(items, prices, currencyCode)
+	response := commercetools.NewUpdateResponse(actions)
+
+	// We create the response
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(response)
+
+	s.log.Debug().Msg("HandleCartUpdateLSurCharges finished")
+}
+
+func (s *Server) HandleCartUpdateShippingCost(w http.ResponseWriter, r *http.Request) {
+	s.log.Debug().Msg("HandleCartUpdateShippingCost called")
+	ctx := context.TODO()
+
+	// We parse the request to a workable struct
+	request, err := parseRequest(ctx, r)
+	if err != nil {
+		return //todo: implement proper error
+	}
+	if request != nil &&
+		request.Resource != nil &&
+		request.Resource.Cart.ShippingAddress != nil &&
+		request.Resource.Cart.ShippingAddress.PostalCode != "" {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
+	postalCode := request.Resource.Cart.ShippingAddress.PostalCode
+
+	actions := commercetools.CreateUpdateActionShippingCost(postalCode)
+	response := commercetools.NewUpdateResponse(actions)
+
+	// We create the response
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(response)
+
+	s.log.Debug().Msg("HandleCartUpdateShippingCost finished")
+}
+
+func (s *Server) HandleCartExtension(writer http.ResponseWriter, req *http.Request) {
+	//we always want to send back the data as json
+	writer.Header().Set("Content-Type", "application/json")
+	s.printRequest(req.Body)
 	writer.WriteHeader(http.StatusOK)
-	writer.Write(actions)
 }
 
-//SerializeResponse Just takes the request and
-func SerializeResponse(req *http.Request) (*commercetools.UpdateResponse, error) {
-	updateResponse := &commercetools.UpdateResponse{}
-	if err := json.NewDecoder(req.Body).Decode(updateResponse); err != nil {
-		return nil, err
+func getCustomerKey(ctx context.Context, id string, ct *commercetools.Client) (string, error) {
+	customer, response, err := ct.Customer.Get(ctx, id)
+	if err != nil {
+		return "", err
 	}
-	return updateResponse, nil
-}
-
-type Response struct {
-	Actions []interface{} `json:"actions"`
-}
-
-func createPriceUpdatesForCart(cart *commercetools.Cart, prices []*priceResp) Response {
-	var updateActions []interface{}
-	for _, price := range prices {
-		id := getLineItemId(cart, price.sapID)
-		updateActions = append(updateActions,
-			commercetools.CartActions{}.SetLineItemPrice(id, commercetools.BaseMoney{
-				Type:           "centPrecision",
-				CurrencyCode:   cart.TotalPrice.CurrencyCode, //ugly hack but it works
-				CentAmount:     price.price,
-				FractionDigits: 2,
-			}))
+	if response.StatusCode != http.StatusOK {
+		return "", errors.New(fmt.Sprintf("CT returned code %v please check logs : %v ", response.StatusCode, response.Body))
 	}
-	return Response{Actions: updateActions}
+
+	return customer.Key, nil
 }
 
-func extractSapNumbersFromCart(cart *commercetools.Cart) string {
+func getSapIDs(items []*commercetools.LineItem) string {
 	var sapIds string
-	for _, item := range cart.LineItems {
+	for _, item := range items {
 		sapId := ""
 		for _, attribute := range item.Variant.Attributes {
 			if attribute.Name == "sap-number" {
@@ -114,31 +175,10 @@ func extractSapNumbersFromCart(cart *commercetools.Cart) string {
 	return strings.TrimSuffix(sapIds, ",")
 }
 
-func getLineItemId(cart *commercetools.Cart, sapID string) string {
-	for _, lineItem := range cart.LineItems {
-		for _, attribute := range lineItem.Variant.Attributes {
-			if attribute.Name == "sap-number" && attribute.Value == sapID {
-				return lineItem.Id
-			}
-		}
+func getSurchargeCodes(items []*commercetools.CustomLineItem) string {
+	var codes string
+	for _, item := range items {
+		codes += item.Slug + ","
 	}
-	return ""
-}
-
-/// below stuff is just here to keep on working on the implementation
-func fakePriceGenerator(sapIDs string) []*priceResp {
-	var prices []*priceResp
-	for _, sapId := range strings.Split(sapIDs, ",") {
-		prices = append(prices, newPriceResp(sapId, 100000000))
-	}
-	return prices
-}
-
-type priceResp struct {
-	sapID string
-	price int64
-}
-
-func newPriceResp(sapID string, price int64) *priceResp {
-	return &priceResp{sapID: sapID, price: price}
+	return strings.TrimSuffix(codes, ",")
 }

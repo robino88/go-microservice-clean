@@ -3,18 +3,19 @@ package commercetools
 //https://docs.commercetools.com/http-api-projects-carts
 
 type Cart struct {
-	Type                  string      `json:"type"`
-	ID                    string      `json:"id"`
-	Version               int         `json:"version"`
-	CustomerId            string      `json:"customerId,omitempty"`
-	CustomerEmail         string      `json:"customerEmail,omitempty"`
-	CartState             string      `json:"cartState,omitempty"`
-	LineItems             []*LineItem `json:"lineItems"`
-	TotalPrice            *BaseMoney  `json:"totalPrice"`
-	ShippingAddress       *Address    `json:"shippingAddress,omitempty"`
-	BillingAddress        *Address    `json:"billingAddress,omitempty"`
-	Country               string      `json:"country,omitempty"`
-	ItemShippingAddresses []*Address  `json:"itemShippingAddresses,omitempty"`
+	Type                  string            `json:"type"`
+	ID                    string            `json:"id"`
+	Version               int               `json:"version"`
+	CustomerId            string            `json:"customerId,omitempty"`
+	CustomerEmail         string            `json:"customerEmail,omitempty"`
+	CartState             string            `json:"cartState,omitempty"`
+	LineItems             []*LineItem       `json:"lineItems"`
+	CustomLineItems       []*CustomLineItem `json:"customLineItems"`
+	TotalPrice            *BaseMoney        `json:"totalPrice"`
+	ShippingAddress       *Address          `json:"shippingAddress,omitempty"`
+	BillingAddress        *Address          `json:"billingAddress,omitempty"`
+	Country               string            `json:"country,omitempty"`
+	ItemShippingAddresses []*Address        `json:"itemShippingAddresses,omitempty"`
 }
 
 type UpdateCart struct {
@@ -37,6 +38,14 @@ type LineItem struct {
 	ProductId string   `json:"productId"`
 	Quantity  uint     `json:"quantity"`
 	Variant   *Variant `json:"variant"`
+}
+
+type CustomLineItem struct {
+	Id         string    `json:"id"`
+	Money      BaseMoney `json:"money"`
+	TotalPrice BaseMoney `json:"totalPrice"`
+	Slug       string    `json:"slug"`
+	Quantity   uint      `json:"quantity"`
 }
 
 type BaseMoney struct {

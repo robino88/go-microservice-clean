@@ -26,8 +26,9 @@ type Client struct {
 	common service
 
 	// Services used for talking to different parts of the Commercetools API.
-	Project *ProjectService
-	Carts   *CartService
+	Project  *ProjectService
+	Carts    *CartService
+	Customer *CustomerService
 }
 
 type ErrorResponse struct {
@@ -39,25 +40,6 @@ type ErrorResponse struct {
 type Error struct {
 	Code    string `json:"code"`
 	Message string `json:"message"`
-}
-
-type UpdateResponse struct {
-	Action   string    `json:"action"`
-	Resource *Resource `json:"resource"`
-}
-
-type Resource struct {
-	TypeID string `json:"typeId"`
-	ID     string `json:"id"`
-	Cart   *Cart  `json:"obj"`
-}
-
-func NewErrorResponse(code string, message string) []byte {
-	err, _ := json.Marshal(Error{
-		Code:    code,
-		Message: message,
-	})
-	return err
 }
 
 // NewClient returns a new Commercetools API client. To use API methods which require
@@ -82,6 +64,7 @@ func NewClient(ctx context.Context, config config.CommercetoolsConfig) *Client {
 	c.common.client = c
 	c.Project = (*ProjectService)(&c.common)
 	c.Carts = (*CartService)(&c.common)
+	c.Customer = (*CustomerService)(&c.common)
 
 	return c
 }

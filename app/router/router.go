@@ -13,7 +13,10 @@ func NewRouter(server *server.Server) *chi.Mux {
 	router.Method("GET", "/ping", handler.NewHandler(server.HandlePingGET, logger))
 	router.Method("POST", "/ping", handler.NewHandler(server.HandlePingPOST, logger))
 
-	router.Method("POST", "/cartExtension", handler.NewHandler(server.HandleCartExtension, logger))
+	router.Method("POST", "/cart-apply-customer", handler.NewHandler(server.HandleCartApplyCustomer, logger))
+	router.Method("POST", "/cart-update-lineitems", handler.NewHandler(server.HandleCartUpdateLineItems, logger))
+	router.Method("POST", "/cart-update-surcharges", handler.NewHandler(server.HandleCartUpdateLSurCharges, logger))
+	router.Method("POST", "/cart-update-shippingcost", handler.NewHandler(server.HandleCartUpdateShippingCost, logger))
 
 	return router
 }
