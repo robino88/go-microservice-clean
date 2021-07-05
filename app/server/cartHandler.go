@@ -12,15 +12,15 @@ import (
 
 func (s *Server) HandleCartApplyCustomer(w http.ResponseWriter, r *http.Request) {
 	s.log.Debug().Msg("HandleCartApplyCustomer called")
-	s.printRequest(r.Body)
+	//s.printRequest(r.Body)
 	ctx := context.TODO()
 
 	// We parse the request to a workable struct
 	request, err := parseRequest(ctx, r)
-	if err != nil ||
-		request == nil ||
-		request.Resource == nil ||
-		request.Resource.Cart == nil {
+	if err != nil &&
+		(request == nil ||
+			request.Resource == nil ||
+			request.Resource.Cart == nil) {
 		s.log.Info().Msg("HandleCartApplyCustomer: got a bad request the data was incomplete")
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -48,6 +48,7 @@ func (s *Server) HandleCartApplyCustomer(w http.ResponseWriter, r *http.Request)
 	// We create the response
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
+	s.log.Info().Msgf("response: ", string(response))
 	w.Write(response)
 
 	s.log.Debug().Msg("HandleCartApplyCustomer finished")
@@ -86,6 +87,7 @@ func (s *Server) HandleCartUpdateLineItems(w http.ResponseWriter, r *http.Reques
 	// We create the response
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
+	s.log.Info().Msgf("response: ", string(response))
 	w.Write(response)
 
 	s.log.Debug().Msg("HandleCartUpdateLineItems finished")
@@ -120,6 +122,7 @@ func (s *Server) HandleCartUpdateLSurCharges(w http.ResponseWriter, r *http.Requ
 	// We create the response
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
+	s.log.Info().Msgf("response: ", string(response))
 	w.Write(response)
 
 	s.log.Debug().Msg("HandleCartUpdateLSurCharges finished")
@@ -156,6 +159,7 @@ func (s *Server) HandleCartUpdateShippingCost(w http.ResponseWriter, r *http.Req
 	// We create the response
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
+	s.log.Info().Msgf("response: ", string(response))
 	w.Write(response)
 
 	s.log.Debug().Msg("HandleCartUpdateShippingCost finished")
