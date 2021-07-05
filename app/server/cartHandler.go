@@ -16,8 +16,18 @@ func (s *Server) HandleCartApplyCustomer(w http.ResponseWriter, r *http.Request)
 
 	// We parse the request to a workable struct
 	request, err := parseRequest(ctx, r)
-	if err != nil {
-		return //todo: implement proper error
+	if err != nil ||
+		request == nil ||
+		request.Resource == nil ||
+		request.Resource.Cart == nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	if request.Resource.Cart.CustomerId != "" {
+		s.log.Debug().Msg("HandleCartApplyCustomer: got a cart without customerID")
+		w.WriteHeader(http.StatusOK)
+		return
 	}
 
 	// we retrieve the customerID from he cart
@@ -50,10 +60,10 @@ func (s *Server) HandleCartUpdateLineItems(w http.ResponseWriter, r *http.Reques
 	if err != nil {
 		return //todo: implement proper error
 	}
-	if request != nil &&
-		request.Resource != nil &&
-		request.Resource.Cart.LineItems != nil {
-		w.WriteHeader(http.StatusOK)
+	if request == nil ||
+		request.Resource == nil ||
+		request.Resource.Cart.LineItems == nil {
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	// We retrieve the lineItems from the cart
@@ -87,9 +97,9 @@ func (s *Server) HandleCartUpdateLSurCharges(w http.ResponseWriter, r *http.Requ
 	if err != nil {
 		return //todo: implement proper error
 	}
-	if request != nil &&
-		request.Resource != nil &&
-		request.Resource.Cart.CustomLineItems != nil {
+	if request == nil ||
+		request.Resource == nil ||
+		request.Resource.Cart.CustomLineItems == nil {
 		w.WriteHeader(http.StatusOK)
 		return
 	}
@@ -120,10 +130,15 @@ func (s *Server) HandleCartUpdateShippingCost(w http.ResponseWriter, r *http.Req
 	if err != nil {
 		return //todo: implement proper error
 	}
-	if request != nil &&
-		request.Resource != nil &&
-		request.Resource.Cart.ShippingAddress != nil &&
-		request.Resource.Cart.ShippingAddress.PostalCode != "" {
+
+	if request == nil ||
+		request.Resource == nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	if request.Resource.Cart.ShippingAddress == nil ||
+		request.Resource.Cart.ShippingAddress.PostalCode == "" {
 		w.WriteHeader(http.StatusOK)
 		return
 	}
