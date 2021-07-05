@@ -1,8 +1,13 @@
 package commercetools
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"github.com/robino88/go-microservice-clean/util/mock"
+	"net/http"
+	"strings"
 )
 
 type Response struct {
@@ -52,12 +57,18 @@ func CreateUpdateActionForLineItemPrices(items []*LineItem, prices []*mock.Price
 	}
 
 	for _, price := range prices {
-		id := getLineItemId(items, price.SapID)
+		id, quantity := getLineItemId(items, price.SapID)
+
 		updateActions = append(updateActions,
-			setLineItemPrice(id, BaseMoney{
+			setLineItemTotalPrice(id, BaseMoney{
 				Type:           "centPrecision",
 				CurrencyCode:   code,
 				CentAmount:     price.Price,
+				FractionDigits: 2,
+			}, BaseMoney{
+				Type:           "centPrecision",
+				CurrencyCode:   code,
+				CentAmount:     price.Price * quantity,
 				FractionDigits: 2,
 			}))
 	}
@@ -83,4 +94,39 @@ func CreateUpdateActionShippingCost(CurrencyCode string, shippingCost int) []int
 	var updateActions []interface{}
 	updateActions = append(updateActions, setCustomShippingMethod(CurrencyCode, shippingCost))
 	return updateActions
+}
+
+func GetCartCustomTypeID(ctx context.Context, typeKey string, ct *Client) (string, error) {
+	customType, response, err := ct.CustomTypes.GetByKey(ctx, typeKey)
+	if err != nil {
+		return "", err
+	}
+	if response.StatusCode != http.StatusOK {
+		return "", errors.New(fmt.Sprintf("CT returned code %v please check logs : %v ", response.StatusCode, response.Body))
+	}
+
+	return customType.Id, nil
+}
+
+func GetSapIDs(items []*LineItem) string {
+	var sapIds string
+	for _, item := range items {
+		sapId := ""
+		for _, attribute := range item.Variant.Attributes {
+			if attribute.Name == "sap-number" {
+				sapId = fmt.Sprintf("%v", attribute.Value)
+			}
+		}
+		sapIds += sapId + ","
+	}
+
+	return strings.TrimSuffix(sapIds, ",")
+}
+
+func GetSurchargeCodes(items []*CustomLineItem) string {
+	var codes string
+	for _, item := range items {
+		codes += item.Slug + ","
+	}
+	return strings.TrimSuffix(codes, ",")
 }

@@ -2,12 +2,12 @@ package server
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/robino88/go-microservice-clean/util/commercetools"
 	"github.com/robino88/go-microservice-clean/util/mock"
 	"net/http"
-	"strings"
 )
 
 //HandleCartApplyCustomer This handle is called upon when the cart is created
@@ -49,7 +49,7 @@ func (s *Server) HandleCartApplyCustomer(w http.ResponseWriter, r *http.Request)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	getCartCustomTypeID(ctx, "cart-type", s.ct)
+	commercetools.GetCartCustomTypeID(ctx, "cart-type", s.ct)
 
 	// We create a UpdateAction to return back as a response
 	actions := commercetools.CreateUpdateActionForCustomerKeyAppend(customerKey)
@@ -90,12 +90,19 @@ func (s *Server) HandleCartUpdateLineItems(w http.ResponseWriter, r *http.Reques
 	// We also extract the sapIds from the lineitems in a comma seperated string value
 	lineItems := request.Resource.Cart.LineItems
 	currencyCode := request.Resource.Cart.TotalPrice.CurrencyCode
-	sapIds := getSapIDs(lineItems)
+	sapIds := commercetools.GetSapIDs(lineItems)
 	s.log.Info().Msgf("retrieved sapID's : %v from lineItems", sapIds)
 
 	// Do call to service
 	//todo: implement real database
 	prices := mock.FakePriceGenerator(sapIds)
+	marshal, err := json.Marshal(prices)
+	if err != nil {
+		s.log.Error().Err(err).Msg("HandleCartUpdateLineItems: Got some broken request from commercetools")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	s.log.Info().Msgf("HandleCartUpdateLineItems: Got the prices from the Backend: %v", string(marshal))
 
 	// We create a UpdateAction to return back as a response
 	actions := commercetools.CreateUpdateActionForLineItemPrices(lineItems, prices, currencyCode)
@@ -131,7 +138,7 @@ func (s *Server) HandleCartUpdateSurCharges(w http.ResponseWriter, r *http.Reque
 
 	items := request.Resource.Cart.CustomLineItems
 	currencyCode := request.Resource.Cart.TotalPrice.CurrencyCode
-	surchargeCodes := getSurchargeCodes(items)
+	surchargeCodes := commercetools.GetSurchargeCodes(items)
 	s.log.Info().Msgf("Retrieved the surCharges from the cart:  %v", surchargeCodes)
 	prices := mock.FakePriceGenerator(surchargeCodes)
 
@@ -196,39 +203,4 @@ func getCustomerExternalID(ctx context.Context, id string, ct *commercetools.Cli
 	}
 
 	return customer.ExternalId, nil
-}
-
-func getCartCustomTypeID(ctx context.Context, typeKey string, ct *commercetools.Client) (string, error) {
-	customType, response, err := ct.CustomTypes.GetByKey(ctx, typeKey)
-	if err != nil {
-		return "", err
-	}
-	if response.StatusCode != http.StatusOK {
-		return "", errors.New(fmt.Sprintf("CT returned code %v please check logs : %v ", response.StatusCode, response.Body))
-	}
-
-	return customType.Id, nil
-}
-
-func getSapIDs(items []*commercetools.LineItem) string {
-	var sapIds string
-	for _, item := range items {
-		sapId := ""
-		for _, attribute := range item.Variant.Attributes {
-			if attribute.Name == "sap-number" {
-				sapId = fmt.Sprintf("%v", attribute.Value)
-			}
-		}
-		sapIds += sapId + ","
-	}
-
-	return strings.TrimSuffix(sapIds, ",")
-}
-
-func getSurchargeCodes(items []*commercetools.CustomLineItem) string {
-	var codes string
-	for _, item := range items {
-		codes += item.Slug + ","
-	}
-	return strings.TrimSuffix(codes, ",")
 }

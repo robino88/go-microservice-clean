@@ -18,6 +18,26 @@ func setLineItemPrice(lineItemId string, price BaseMoney) interface{} {
 	}
 }
 
+func setLineItemTotalPrice(lineItemId string, price BaseMoney, totalPrice BaseMoney) interface{} {
+	type CartActions struct {
+		Action        string `json:"action"`
+		LineItemId    string `json:"lineItemId"`
+		ExternalPrice struct {
+			Price      BaseMoney `json:"price"`
+			TotalPrice BaseMoney `json:"totalPrice"`
+		} `json:"externalTotalPrice"`
+	}
+
+	return CartActions{
+		Action:     "setLineItemTotalPrice",
+		LineItemId: lineItemId,
+		ExternalPrice: struct {
+			Price      BaseMoney `json:"price"`
+			TotalPrice BaseMoney `json:"totalPrice"`
+		}{Price: price, TotalPrice: totalPrice},
+	}
+}
+
 func setCustomField(name string, value string) interface{} {
 	type CartActions struct {
 		Action string `json:"action"`
@@ -92,13 +112,13 @@ func setCustomShippingMethod(currencyCode string, centAmount int) interface{} {
 	}
 }
 
-func getLineItemId(items []*LineItem, sapID string) string {
+func getLineItemId(items []*LineItem, sapID string) (string, int64) {
 	for _, lineItem := range items {
 		for _, attribute := range lineItem.Variant.Attributes {
 			if attribute.Name == "sap-number" && attribute.Value == sapID {
-				return lineItem.Id
+				return lineItem.Id, lineItem.Quantity
 			}
 		}
 	}
-	return ""
+	return "", 0
 }

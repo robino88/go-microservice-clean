@@ -36,7 +36,7 @@ type Attribute struct {
 type LineItem struct {
 	Id        string   `json:"id"`
 	ProductId string   `json:"productId"`
-	Quantity  uint     `json:"quantity"`
+	Quantity  int64    `json:"quantity"`
 	Variant   *Variant `json:"variant"`
 }
 
@@ -45,7 +45,7 @@ type CustomLineItem struct {
 	Money      BaseMoney `json:"money"`
 	TotalPrice BaseMoney `json:"totalPrice"`
 	Slug       string    `json:"slug"`
-	Quantity   uint      `json:"quantity"`
+	Quantity   int64     `json:"quantity"`
 }
 
 type BaseMoney struct {
