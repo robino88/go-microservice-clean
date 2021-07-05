@@ -91,6 +91,7 @@ func (s *Server) HandleCartUpdateLineItems(w http.ResponseWriter, r *http.Reques
 	lineItems := request.Resource.Cart.LineItems
 	currencyCode := request.Resource.Cart.TotalPrice.CurrencyCode
 	sapIds := getSapIDs(lineItems)
+	s.log.Info().Msgf("retrieved sapID's : %v from lineItems", sapIds)
 
 	// Do call to service
 	//todo: implement real database
@@ -131,6 +132,7 @@ func (s *Server) HandleCartUpdateSurCharges(w http.ResponseWriter, r *http.Reque
 	items := request.Resource.Cart.CustomLineItems
 	currencyCode := request.Resource.Cart.TotalPrice.CurrencyCode
 	surchargeCodes := getSurchargeCodes(items)
+	s.log.Info().Msgf("Retrieved the surCharges from the cart:  %v", surchargeCodes)
 	prices := mock.FakePriceGenerator(surchargeCodes)
 
 	// We create a UpdateAction to return back as a response
