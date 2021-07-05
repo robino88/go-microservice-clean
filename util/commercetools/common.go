@@ -40,6 +40,7 @@ func NewUpdateResponse(updateActions []interface{}) []byte {
 
 func CreateUpdateActionForCustomerKeyAppend(customerKey string) []interface{} {
 	var updateActions []interface{}
+	updateActions = append(updateActions, setCustomType("6e9f44ed-542f-4792-a22f-ffecb6392044"))
 	updateActions = append(updateActions, setCustomField("customer-sap-id", customerKey))
 	return updateActions
 }

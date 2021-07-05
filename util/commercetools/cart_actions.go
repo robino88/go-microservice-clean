@@ -32,6 +32,25 @@ func setCustomField(name string, value string) interface{} {
 	}
 }
 
+func setCustomType(id string) interface{} {
+	type CartActions struct {
+		Action string `json:"action"`
+		Type   struct {
+			Id     string `json:"id"`
+			TypeID string `json:"typeId"`
+		} `json:"type"`
+	}
+
+	return CartActions{
+		Action: "setCustomType",
+		Type: struct {
+			Id     string `json:"id"`
+			TypeID string `json:"typeId"`
+		}{Id: id,
+			TypeID: "type"},
+	}
+}
+
 func changeCustomLineItemMoney(name string, price BaseMoney) interface{} {
 	type CartActions struct {
 		Action           string    `json:"action"`

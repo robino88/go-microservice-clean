@@ -12,6 +12,7 @@ import (
 
 func (s *Server) HandleCartApplyCustomer(w http.ResponseWriter, r *http.Request) {
 	s.log.Debug().Msg("HandleCartApplyCustomer called")
+	s.printRequest(r.Body)
 	ctx := context.TODO()
 
 	// We parse the request to a workable struct
@@ -20,12 +21,13 @@ func (s *Server) HandleCartApplyCustomer(w http.ResponseWriter, r *http.Request)
 		request == nil ||
 		request.Resource == nil ||
 		request.Resource.Cart == nil {
+		s.log.Info().Msg("HandleCartApplyCustomer: got a bad request the data was incomplete")
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	if request.Resource.Cart.CustomerId != "" {
-		s.log.Debug().Msg("HandleCartApplyCustomer: got a cart without customerID")
+		s.log.Info().Msg("HandleCartApplyCustomer: got a cart without customerID")
 		w.WriteHeader(http.StatusOK)
 		return
 	}
@@ -53,6 +55,7 @@ func (s *Server) HandleCartApplyCustomer(w http.ResponseWriter, r *http.Request)
 
 func (s *Server) HandleCartUpdateLineItems(w http.ResponseWriter, r *http.Request) {
 	s.log.Debug().Msg("HandleCartUpdateLineItems called")
+	s.printRequest(r.Body)
 	ctx := context.TODO()
 
 	// We parse the request to a workable struct
@@ -90,6 +93,7 @@ func (s *Server) HandleCartUpdateLineItems(w http.ResponseWriter, r *http.Reques
 
 func (s *Server) HandleCartUpdateLSurCharges(w http.ResponseWriter, r *http.Request) {
 	s.log.Debug().Msg("HandleCartUpdateLSurCharges called")
+	s.printRequest(r.Body)
 	ctx := context.TODO()
 
 	// We parse the request to a workable struct
@@ -123,6 +127,7 @@ func (s *Server) HandleCartUpdateLSurCharges(w http.ResponseWriter, r *http.Requ
 
 func (s *Server) HandleCartUpdateShippingCost(w http.ResponseWriter, r *http.Request) {
 	s.log.Debug().Msg("HandleCartUpdateShippingCost called")
+	s.printRequest(r.Body)
 	ctx := context.TODO()
 
 	// We parse the request to a workable struct
