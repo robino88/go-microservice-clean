@@ -26,7 +26,7 @@ func (s *Server) HandleCartApplyCustomer(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	if request.Resource.Cart.CustomerId != "" {
+	if request.Resource.Cart.CustomerId == "" {
 		s.log.Info().Msg("HandleCartApplyCustomer: got a cart without customerID")
 		w.WriteHeader(http.StatusOK)
 		return
@@ -36,7 +36,7 @@ func (s *Server) HandleCartApplyCustomer(w http.ResponseWriter, r *http.Request)
 	customerId := request.Resource.Cart.CustomerId
 
 	// We can use that customerID to retrieve the customerKey From the Customer
-	customerKey, err := getCustomerKey(ctx, customerId, s.ct)
+	customerKey, err := getCustomerExternalID(ctx, customerId, s.ct)
 	if err != nil {
 		return //todo: implement proper error
 	}
@@ -48,7 +48,7 @@ func (s *Server) HandleCartApplyCustomer(w http.ResponseWriter, r *http.Request)
 	// We create the response
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	s.log.Info().Msgf("response: ", string(response))
+	s.log.Info().Msgf("response: %v", string(response))
 	w.Write(response)
 
 	s.log.Debug().Msg("HandleCartApplyCustomer finished")
@@ -87,7 +87,7 @@ func (s *Server) HandleCartUpdateLineItems(w http.ResponseWriter, r *http.Reques
 	// We create the response
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	s.log.Info().Msgf("response: ", string(response))
+	s.log.Info().Msgf("response: %v", string(response))
 	w.Write(response)
 
 	s.log.Debug().Msg("HandleCartUpdateLineItems finished")
@@ -122,7 +122,7 @@ func (s *Server) HandleCartUpdateLSurCharges(w http.ResponseWriter, r *http.Requ
 	// We create the response
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	s.log.Info().Msgf("response: ", string(response))
+	s.log.Info().Msgf("response: %v", string(response))
 	w.Write(response)
 
 	s.log.Debug().Msg("HandleCartUpdateLSurCharges finished")
@@ -159,7 +159,7 @@ func (s *Server) HandleCartUpdateShippingCost(w http.ResponseWriter, r *http.Req
 	// We create the response
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	s.log.Info().Msgf("response: ", string(response))
+	s.log.Info().Msgf("response: %v", string(response))
 	w.Write(response)
 
 	s.log.Debug().Msg("HandleCartUpdateShippingCost finished")
@@ -172,7 +172,7 @@ func (s *Server) HandleCartExtension(writer http.ResponseWriter, req *http.Reque
 	writer.WriteHeader(http.StatusOK)
 }
 
-func getCustomerKey(ctx context.Context, id string, ct *commercetools.Client) (string, error) {
+func getCustomerExternalID(ctx context.Context, id string, ct *commercetools.Client) (string, error) {
 	customer, response, err := ct.Customer.Get(ctx, id)
 	if err != nil {
 		return "", err
@@ -181,7 +181,7 @@ func getCustomerKey(ctx context.Context, id string, ct *commercetools.Client) (s
 		return "", errors.New(fmt.Sprintf("CT returned code %v please check logs : %v ", response.StatusCode, response.Body))
 	}
 
-	return customer.Key, nil
+	return customer.ExternalId, nil
 }
 
 func getSapIDs(items []*commercetools.LineItem) string {
