@@ -26,9 +26,10 @@ type Client struct {
 	common service
 
 	// Services used for talking to different parts of the Commercetools API.
-	Project  *ProjectService
-	Carts    *CartService
-	Customer *CustomerService
+	Project     *ProjectService
+	Carts       *CartService
+	Customer    *CustomerService
+	CustomTypes *TypeService
 }
 
 type ErrorResponse struct {
@@ -65,6 +66,7 @@ func NewClient(ctx context.Context, config config.CommercetoolsConfig) *Client {
 	c.Project = (*ProjectService)(&c.common)
 	c.Carts = (*CartService)(&c.common)
 	c.Customer = (*CustomerService)(&c.common)
+	c.CustomTypes = (*TypeService)(&c.common)
 
 	return c
 }

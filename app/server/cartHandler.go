@@ -40,6 +40,7 @@ func (s *Server) HandleCartApplyCustomer(w http.ResponseWriter, r *http.Request)
 	if err != nil {
 		return //todo: implement proper error
 	}
+	getCartCustomTypeID(ctx, "cart-type", s.ct)
 
 	// We create a UpdateAction to return back as a response
 	actions := commercetools.CreateUpdateActionForCustomerKeyAppend(customerKey)
@@ -182,6 +183,18 @@ func getCustomerExternalID(ctx context.Context, id string, ct *commercetools.Cli
 	}
 
 	return customer.ExternalId, nil
+}
+
+func getCartCustomTypeID(ctx context.Context, typeKey string, ct *commercetools.Client) (string, error) {
+	customType, response, err := ct.CustomTypes.GetByKey(ctx, typeKey)
+	if err != nil {
+		return "", err
+	}
+	if response.StatusCode != http.StatusOK {
+		return "", errors.New(fmt.Sprintf("CT returned code %v please check logs : %v ", response.StatusCode, response.Body))
+	}
+
+	return customType.Id, nil
 }
 
 func getSapIDs(items []*commercetools.LineItem) string {
