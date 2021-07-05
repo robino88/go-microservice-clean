@@ -1,6 +1,9 @@
 package mock
 
-import "strings"
+import (
+	"strconv"
+	"strings"
+)
 
 /// below stuff is just here to keep on working on the implementation
 func FakePriceGenerator(sapIDs string) []*PriceResp {
@@ -9,6 +12,14 @@ func FakePriceGenerator(sapIDs string) []*PriceResp {
 		prices = append(prices, newPriceResp(sapId, 100000000))
 	}
 	return prices
+}
+
+func FakeShippingCostCalculator(postalCode string) int {
+	atoi, err := strconv.Atoi(postalCode)
+	if err != nil {
+		return 1
+	}
+	return atoi
 }
 
 type PriceResp struct {

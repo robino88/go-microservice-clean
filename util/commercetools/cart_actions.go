@@ -65,6 +65,33 @@ func changeCustomLineItemMoney(name string, price BaseMoney) interface{} {
 	}
 }
 
+func setCustomShippingMethod(currencyCode string, centAmount int) interface{} {
+	type CartAction struct {
+		Action             string `json:"action"`
+		ShippingMethodName string `json:"shippingMethodName"`
+		ShippingRate       struct {
+			Price struct {
+				CurrencyCode string `json:"currencyCode"`
+				CentAmount   int    `json:"centAmount"`
+			} `json:"price"`
+		} `json:"shippingRate"`
+	}
+
+	return CartAction{
+		Action:             "setCustomShippingMethod",
+		ShippingMethodName: "external-calculated-shipping",
+		ShippingRate: struct {
+			Price struct {
+				CurrencyCode string `json:"currencyCode"`
+				CentAmount   int    `json:"centAmount"`
+			} `json:"price"`
+		}{Price: struct {
+			CurrencyCode string `json:"currencyCode"`
+			CentAmount   int    `json:"centAmount"`
+		}{CurrencyCode: currencyCode, CentAmount: centAmount}},
+	}
+}
+
 func getLineItemId(items []*LineItem, sapID string) string {
 	for _, lineItem := range items {
 		for _, attribute := range lineItem.Variant.Attributes {

@@ -79,8 +79,8 @@ func CreateUpdateActionForSurCharges(items []*CustomLineItem, prices []*mock.Pri
 	return updateActions
 }
 
-func CreateUpdateActionShippingCost(postalCode string) []interface{} {
+func CreateUpdateActionShippingCost(CurrencyCode string, shippingCost int) []interface{} {
 	var updateActions []interface{}
-
+	updateActions = append(updateActions, setCustomShippingMethod(CurrencyCode, shippingCost))
 	return updateActions
 }
