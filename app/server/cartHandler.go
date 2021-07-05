@@ -66,6 +66,7 @@ func (s *Server) HandleCartApplyCustomer(w http.ResponseWriter, r *http.Request)
 
 func (s *Server) HandleCartUpdateLineItems(w http.ResponseWriter, r *http.Request) {
 	s.log.Debug().Msg("HandleCartUpdateLineItems called")
+	s.printRequest(r.Body)
 	ctx := context.TODO()
 
 	// We parse the request to a workable struct
@@ -87,7 +88,7 @@ func (s *Server) HandleCartUpdateLineItems(w http.ResponseWriter, r *http.Reques
 	// We retrieve the lineItems from the cart
 	// When a cart is created it by default always has a totalPrice with a currencyCode so we can use that for our next
 	// requests.
-	//we also extract the sapIds from the lineitems in a comma seperated string value
+	// We also extract the sapIds from the lineitems in a comma seperated string value
 	lineItems := request.Resource.Cart.LineItems
 	currencyCode := request.Resource.Cart.TotalPrice.CurrencyCode
 	sapIds := getSapIDs(lineItems)
