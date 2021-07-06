@@ -30,6 +30,7 @@ type Client struct {
 	Carts       *CartService
 	Customer    *CustomerService
 	CustomTypes *TypeService
+	Taxes       *TaxService
 }
 
 type ErrorResponse struct {
@@ -67,6 +68,7 @@ func NewClient(ctx context.Context, config config.CommercetoolsConfig) *Client {
 	c.Carts = (*CartService)(&c.common)
 	c.Customer = (*CustomerService)(&c.common)
 	c.CustomTypes = (*TypeService)(&c.common)
+	c.Taxes = (*TaxService)(&c.common)
 
 	return c
 }

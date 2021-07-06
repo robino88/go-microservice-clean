@@ -3,8 +3,6 @@ package server
 import (
 	"context"
 	"encoding/json"
-	"errors"
-	"fmt"
 	"github.com/robino88/go-microservice-clean/util/commercetools"
 	"github.com/robino88/go-microservice-clean/util/mock"
 	"net/http"
@@ -43,16 +41,22 @@ func (s *Server) HandleCartApplyCustomer(w http.ResponseWriter, r *http.Request)
 	// We retrieve the customerID from he cart
 	// We can use that customerID to retrieve the customerKey From the Customer
 	customerId := request.Resource.Cart.CustomerId
-	customerKey, err := getCustomerExternalID(ctx, customerId, s.ct)
+	customerKey, err := commercetools.RequestCustomerExternalID(ctx, customerId, s.ct)
 	if err != nil {
 		s.log.Error().Err(err).Msg("HandleCartApplyCustomer: Couldn't get the customer key")
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	commercetools.GetCartCustomTypeID(ctx, "cart-type", s.ct)
+	customTypeID, err := commercetools.RequestCartCustomTypeID(ctx, "cart-type", s.ct)
+	if err != nil {
+		s.log.Error().Err(err).Msg("HandleCartApplyCustomer: Couldn't retrieve the custom type that is" +
+			" needed to map sap ID to.")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
 	// We create a UpdateAction to return back as a response
-	actions := commercetools.CreateUpdateActionForCustomerKeyAppend(customerKey)
+	actions := commercetools.CreateUpdateActionForCustomerKeyAppend(customTypeID, customerKey)
 	response := commercetools.NewUpdateResponse(actions)
 
 	// We create the response
@@ -177,11 +181,18 @@ func (s *Server) HandleCartUpdateShippingCost(w http.ResponseWriter, r *http.Req
 		return
 	}
 
+	taxID, err := commercetools.RequestTaxID(ctx, "standard", s.ct)
+	if err != nil {
+		s.log.Error().Err(err).Msg("HandleCartApplyCustomer: Couldn't get the Tax ID of the standard Tax")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
 	postalCode := request.Resource.Cart.ShippingAddress.PostalCode
 	currencyCode := request.Resource.Cart.TotalPrice.CurrencyCode
 	shippingCost := mock.FakeShippingCostCalculator(postalCode)
 
-	actions := commercetools.CreateUpdateActionShippingCost(currencyCode, shippingCost)
+	actions := commercetools.CreateUpdateActionShippingCost(currencyCode, shippingCost, taxID)
 	response := commercetools.NewUpdateResponse(actions)
 
 	// We create the response
@@ -191,16 +202,4 @@ func (s *Server) HandleCartUpdateShippingCost(w http.ResponseWriter, r *http.Req
 	w.Write(response)
 
 	s.log.Debug().Msg("HandleCartUpdateShippingCost finished")
-}
-
-func getCustomerExternalID(ctx context.Context, id string, ct *commercetools.Client) (string, error) {
-	customer, response, err := ct.Customer.Get(ctx, id)
-	if err != nil {
-		return "", err
-	}
-	if response.StatusCode != http.StatusOK {
-		return "", errors.New(fmt.Sprintf("CT returned code %v please check logs : %v ", response.StatusCode, response.Body))
-	}
-
-	return customer.ExternalId, nil
 }

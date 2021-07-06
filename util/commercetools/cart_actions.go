@@ -1,23 +1,9 @@
 package commercetools
 
-//SetLineItemPrice
+//setLineItemTotalPrice
 //Sets the price of a line item and changes the priceMode of the line item to ExternalPrice
 //If the price mode of the line item is ExternalPrice and no externalPrice is given, the external
 //price is unset and the priceMode is set to Platform.
-func setLineItemPrice(lineItemId string, price BaseMoney) interface{} {
-	type CartActions struct {
-		Action        string    `json:"action"`
-		LineItemId    string    `json:"lineItemId"`
-		ExternalPrice BaseMoney `json:"externalPrice"`
-	}
-
-	return CartActions{
-		Action:        "setLineItemPrice",
-		LineItemId:    lineItemId,
-		ExternalPrice: price,
-	}
-}
-
 func setLineItemTotalPrice(lineItemId string, price BaseMoney, totalPrice BaseMoney) interface{} {
 	type CartActions struct {
 		Action        string `json:"action"`
@@ -71,21 +57,7 @@ func setCustomType(id string) interface{} {
 	}
 }
 
-func changeCustomLineItemMoney(name string, price BaseMoney) interface{} {
-	type CartActions struct {
-		Action           string    `json:"action"`
-		CustomLineItemId string    `json:"customLineItemId"`
-		ExternalPrice    BaseMoney `json:"externalPrice"`
-	}
-
-	return CartActions{
-		Action:           "changeCustomLineItemMoney",
-		CustomLineItemId: name,
-		ExternalPrice:    price,
-	}
-}
-
-func setCustomShippingMethod(currencyCode string, centAmount int) interface{} {
+func setCustomShippingMethod(currencyCode string, centAmount int, taxID string) interface{} {
 	type CartAction struct {
 		Action             string `json:"action"`
 		ShippingMethodName string `json:"shippingMethodName"`
@@ -94,6 +66,10 @@ func setCustomShippingMethod(currencyCode string, centAmount int) interface{} {
 				CurrencyCode string `json:"currencyCode"`
 				CentAmount   int    `json:"centAmount"`
 			} `json:"price"`
+			TaxCategory struct {
+				ID     string `json:"id"`
+				TypeId string `json:"typeId"`
+			} `json:"taxCategory"`
 		} `json:"shippingRate"`
 	}
 
@@ -105,20 +81,17 @@ func setCustomShippingMethod(currencyCode string, centAmount int) interface{} {
 				CurrencyCode string `json:"currencyCode"`
 				CentAmount   int    `json:"centAmount"`
 			} `json:"price"`
-		}{Price: struct {
+			TaxCategory struct {
+				ID     string `json:"id"`
+				TypeId string `json:"typeId"`
+			} `json:"taxCategory"`
+		}{struct {
 			CurrencyCode string `json:"currencyCode"`
 			CentAmount   int    `json:"centAmount"`
-		}{CurrencyCode: currencyCode, CentAmount: centAmount}},
+		}{CurrencyCode: currencyCode, CentAmount: centAmount},
+			struct {
+				ID     string `json:"id"`
+				TypeId string `json:"typeId"`
+			}{ID: taxID, TypeId: "tax-category"}},
 	}
-}
-
-func getLineItemId(items []*LineItem, sapID string) (string, int64) {
-	for _, lineItem := range items {
-		for _, attribute := range lineItem.Variant.Attributes {
-			if attribute.Name == "sap-number" && attribute.Value == sapID {
-				return lineItem.Id, lineItem.Quantity
-			}
-		}
-	}
-	return "", 0
 }
