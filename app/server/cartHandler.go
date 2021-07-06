@@ -6,6 +6,7 @@ import (
 	"github.com/robino88/go-microservice-clean/util/commercetools"
 	"github.com/robino88/go-microservice-clean/util/mock"
 	"net/http"
+	"time"
 )
 
 //HandleCartApplyCustomer This handle is called upon when the cart is created
@@ -15,6 +16,10 @@ func (s *Server) HandleCartApplyCustomer(w http.ResponseWriter, r *http.Request)
 	s.log.Debug().Msg("HandleCartApplyCustomer called")
 	//s.printRequest(r.Body)
 	ctx := context.TODO()
+
+	s.log.Info().Msg("testing the timeout so now we will sleep for 30 seconds....")
+	time.Sleep(time.Second * 30)
+	s.log.Info().Msg("Yawn.... is the time already over well lets get back to work then. ")
 
 	// We parse the request to a workable struct
 	request, err := parseRequest(ctx, r)

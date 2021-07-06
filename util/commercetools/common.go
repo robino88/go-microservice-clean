@@ -10,19 +10,6 @@ import (
 	"strings"
 )
 
-type Response struct {
-	Actions []interface{} `json:"actions"`
-}
-
-type Request struct {
-	Action   string `json:"action"`
-	Resource *struct {
-		TypeID string `json:"typeId"`
-		ID     string `json:"id"`
-		Cart   *Cart  `json:"obj"`
-	} `json:"resource"`
-}
-
 func NewUpdateResponse(updateActions []interface{}) []byte {
 	response, _ := json.Marshal(Response{
 		Actions: updateActions,
@@ -152,6 +139,19 @@ func getLineItemId(items []*LineItem, sapID string) (string, int64) {
 		}
 	}
 	return "", 0
+}
+
+type Response struct {
+	Actions []interface{} `json:"actions"`
+}
+
+type Request struct {
+	Action   string `json:"action"`
+	Resource *struct {
+		TypeID string `json:"typeId"`
+		ID     string `json:"id"`
+		Cart   *Cart  `json:"obj"`
+	} `json:"resource"`
 }
 
 type BaseMoney struct {
