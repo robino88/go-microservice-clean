@@ -66,11 +66,11 @@ func setCustomShippingMethod(currencyCode string, centAmount int, taxID string) 
 				CurrencyCode string `json:"currencyCode"`
 				CentAmount   int    `json:"centAmount"`
 			} `json:"price"`
-			TaxCategory struct {
-				ID     string `json:"id"`
-				TypeId string `json:"typeId"`
-			} `json:"taxCategory"`
 		} `json:"shippingRate"`
+		TaxCategory struct {
+			ID     string `json:"id"`
+			TypeId string `json:"typeId"`
+		} `json:"taxCategory"`
 	}
 
 	return CartAction{
@@ -81,17 +81,13 @@ func setCustomShippingMethod(currencyCode string, centAmount int, taxID string) 
 				CurrencyCode string `json:"currencyCode"`
 				CentAmount   int    `json:"centAmount"`
 			} `json:"price"`
-			TaxCategory struct {
-				ID     string `json:"id"`
-				TypeId string `json:"typeId"`
-			} `json:"taxCategory"`
-		}{struct {
+		}{Price: struct {
 			CurrencyCode string `json:"currencyCode"`
 			CentAmount   int    `json:"centAmount"`
-		}{CurrencyCode: currencyCode, CentAmount: centAmount},
-			struct {
-				ID     string `json:"id"`
-				TypeId string `json:"typeId"`
-			}{ID: taxID, TypeId: "tax-category"}},
+		}{CurrencyCode: currencyCode, CentAmount: centAmount}},
+		TaxCategory: struct {
+			ID     string `json:"id"`
+			TypeId string `json:"typeId"`
+		}{ID: taxID, TypeId: "tax-category"},
 	}
 }

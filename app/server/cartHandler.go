@@ -68,6 +68,10 @@ func (s *Server) HandleCartApplyCustomer(w http.ResponseWriter, r *http.Request)
 	s.log.Debug().Msg("HandleCartApplyCustomer finished")
 }
 
+//HandleCartUpdateLineItems This handle is called upon when the cart is updated
+// once the cart has LineItems we extract the sapIDs from the variant and pass them along, together with
+// the sapCustomerID to the database, this will response with the prices for that lineitem.
+// these prices are added to the lineItem as externalPrice and externalTotalPrice (price * Quantity)
 func (s *Server) HandleCartUpdateLineItems(w http.ResponseWriter, r *http.Request) {
 	s.log.Debug().Msg("HandleCartUpdateLineItems called")
 	ctx := context.TODO()
@@ -120,6 +124,8 @@ func (s *Server) HandleCartUpdateLineItems(w http.ResponseWriter, r *http.Reques
 	s.log.Debug().Msg("HandleCartUpdateLineItems finished")
 }
 
+//HandleCartUpdateSurCharges This handle is called upon when the cart is updated
+//This is a method that will look at the surcharges.
 func (s *Server) HandleCartUpdateSurCharges(w http.ResponseWriter, r *http.Request) {
 	s.log.Debug().Msg("HandleCartUpdateLSurCharges called")
 	ctx := context.TODO()
@@ -159,6 +165,10 @@ func (s *Server) HandleCartUpdateSurCharges(w http.ResponseWriter, r *http.Reque
 	s.log.Debug().Msg("HandleCartUpdateLSurCharges finished")
 }
 
+//HandleCartUpdateShippingCost This handle is called upon when the cart is updated
+// We expect the cart to have a shipping adres (postalcode to be precise) otherwise it will do nothing,
+// With the postal code we check the database for the shipping rate and calcluate the shpiing cost.
+// We do need to do a call towards commercetools to retrieve the tax category that applies
 func (s *Server) HandleCartUpdateShippingCost(w http.ResponseWriter, r *http.Request) {
 	s.log.Debug().Msg("HandleCartUpdateShippingCost called")
 	ctx := context.TODO()
