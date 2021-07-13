@@ -24,6 +24,8 @@ func setLineItemTotalPrice(lineItemId string, price BaseMoney, totalPrice BaseMo
 	}
 }
 
+//setCustomField wraps the "setCustomField action in a action to be send to commercetools
+// it takes the name and value of the field
 func setCustomField(name string, value string) interface{} {
 	type CartActions struct {
 		Action string `json:"action"`

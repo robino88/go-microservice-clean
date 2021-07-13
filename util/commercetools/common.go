@@ -112,7 +112,7 @@ func GetSapIDs(items []*LineItem) string {
 	for _, item := range items {
 		sapId := ""
 		for _, attribute := range item.Variant.Attributes {
-			if attribute.Name == "sap-number" {
+			if attribute.Name == "sap-number" && attribute.Value != "none" {
 				sapId = fmt.Sprintf("%v", attribute.Value)
 			}
 		}

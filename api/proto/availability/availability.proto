@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package main;
+option go_package = "github.com/robino88/go-microservice-clean/spec";
+
+message  Availability {
+    int32 quantity = 1;
+    string matID= 2;
+    string availability = 3;
+}
+
+
+message  Availabilities {
+    repeated Availability availability = 1;
+}
+

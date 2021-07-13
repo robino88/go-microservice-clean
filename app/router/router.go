@@ -18,5 +18,7 @@ func NewRouter(server *server.Server) *chi.Mux {
 	router.Method("POST", "/cart-update-surcharges", handler.NewHandler(server.HandleCartUpdateSurCharges, logger))
 	router.Method("POST", "/cart-update-shippingcost", handler.NewHandler(server.HandleCartUpdateShippingCost, logger))
 
+	router.Method("GET", "/getAvailability", handler.NewHandler(server.HandleProductAvailability, logger))
+
 	return router
 }
