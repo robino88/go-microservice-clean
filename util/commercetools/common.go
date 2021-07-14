@@ -110,15 +110,12 @@ func RequestCustomerExternalID(ctx context.Context, id string, ct *Client) (stri
 func GetSapIDs(items []*LineItem) string {
 	var sapIds string
 	for _, item := range items {
-		sapId := ""
 		for _, attribute := range item.Variant.Attributes {
 			if attribute.Name == "sap-number" && attribute.Value != "none" {
-				sapId = fmt.Sprintf("%v", attribute.Value)
+				sapIds += fmt.Sprintf("%v,", attribute.Value)
 			}
 		}
-		sapIds += sapId + ","
 	}
-
 	return strings.TrimSuffix(sapIds, ",")
 }
 
